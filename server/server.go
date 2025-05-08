@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/lucas-clemente/quic-go"
 	"github.com/net-byte/qsocks/common/constant"
 	"github.com/net-byte/qsocks/config"
 	"github.com/net-byte/qsocks/proxy"
+	"github.com/quic-go/quic-go"
 )
 
 // Starts qsocks server
@@ -34,7 +34,7 @@ func Start(config config.Config) {
 
 }
 
-func handshake(config config.Config, session quic.Session) (bool, proxy.RequestAddr) {
+func handshake(config config.Config, session quic.Connection) (bool, proxy.RequestAddr) {
 	var req proxy.RequestAddr
 	stream, err := session.AcceptUniStream(context.Background())
 	if err != nil {
@@ -59,7 +59,7 @@ func handshake(config config.Config, session quic.Session) (bool, proxy.RequestA
 	return true, req
 }
 
-func handleConn(session quic.Session, config config.Config) {
+func handleConn(session quic.Connection, config config.Config) {
 	defer session.CloseWithError(0, "bye")
 	// handshake
 	ok, req := handshake(config, session)

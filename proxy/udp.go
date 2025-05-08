@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/lucas-clemente/quic-go"
 	"github.com/net-byte/qsocks/common/constant"
 	"github.com/net-byte/qsocks/config"
+	"github.com/quic-go/quic-go"
 )
 
 func UDPProxy(tcpConn net.Conn, udpConn *net.UDPConn, config config.Config) {
@@ -77,9 +77,9 @@ func (relay *UDPRelay) toRemote() {
 			continue
 		}
 		key := cliAddr.String()
-		var session quic.Session
+		var session quic.Connection
 		if value, ok := relay.sessionMap.Load(key); ok {
-			session = value.(quic.Session)
+			session = value.(quic.Connection)
 			stream, err := session.OpenStreamSync(context.Background())
 			if err != nil {
 				log.Println(err)
@@ -87,7 +87,11 @@ func (relay *UDPRelay) toRemote() {
 			}
 			stream.Write(data)
 		} else {
-			session = ConnectServer(relay.Config)
+			session, err = ConnectServer(relay.Config)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
 			if session == nil {
 				continue
 			}
@@ -108,7 +112,7 @@ func (relay *UDPRelay) toRemote() {
 	}
 }
 
-func (relay *UDPRelay) toLocal(session quic.Session, stream quic.Stream, cliAddr *net.UDPAddr) {
+func (relay *UDPRelay) toLocal(session quic.Connection, stream quic.Stream, cliAddr *net.UDPAddr) {
 	defer stream.Close()
 	defer session.CloseWithError(0, "bye")
 	key := cliAddr.String()

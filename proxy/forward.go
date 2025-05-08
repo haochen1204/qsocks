@@ -9,40 +9,38 @@ import (
 	"sync"
 	"time"
 
-	"github.com/lucas-clemente/quic-go"
 	"github.com/net-byte/qsocks/common/cipher"
 	"github.com/net-byte/qsocks/config"
+	"github.com/quic-go/quic-go"
 )
 
 var _tlsConf *tls.Config
 var _lock sync.Mutex
 
-func ConnectServer(config config.Config) quic.Session {
+func ConnectServer(config config.Config) (quic.Connection, error) {
 	_lock.Lock()
 	if _tlsConf == nil {
 		var err error
 		_tlsConf, err = config.GetClientTLSConfig()
 		if err != nil {
 			log.Println(err)
-			return nil
+			return nil, err
 		}
 	}
 	_lock.Unlock()
 	quicConfig := &quic.Config{
-		ConnectionIDLength:   12,
 		HandshakeIdleTimeout: time.Second * 10,
 		MaxIdleTimeout:       time.Second * 30,
-		KeepAlive:            false,
 	}
-	session, err := quic.DialAddr(config.ServerAddr, _tlsConf, quicConfig)
+	session, err := quic.DialAddr(context.Background(), config.ServerAddr, _tlsConf, quicConfig)
 	if err != nil {
 		log.Println(err)
-		return nil
+		return nil, err
 	}
-	return session
+	return session, nil
 }
 
-func Handshake(network string, host string, port string, session quic.Session) bool {
+func Handshake(network string, host string, port string, session quic.Connection) bool {
 	// handshake
 	req := &RequestAddr{}
 	req.Network = network

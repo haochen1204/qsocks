@@ -1,4 +1,3 @@
-#!bin/bash
 #Linux
 GOOS=linux GOARCH=amd64 go build -o ./bin/qsocks-linux-amd64 ./main.go
 #Linux arm

@@ -20,7 +20,11 @@ func TCPProxy(conn net.Conn, config config.Config, data []byte) {
 		DirectProxy(conn, host, port, config)
 		return
 	}
-	session := ConnectServer(config)
+	session, err := ConnectServer(config)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 	if session == nil {
 		ResponseTCP(conn, constant.ConnectionRefused)
 		return
