@@ -1,3 +1,9 @@
+# 修改内容
+
+因项目过于老旧，使用的quic库接口已经更新，导致高版本go无法编译执行代码
+
+修改了库github.com/lucas-clemente/quic-go为github.com/quic-go/quic-go，并将对应接口修改，以适应高版本go语言
+
 # qsocks
 
 A socks5 proxy over quic.
